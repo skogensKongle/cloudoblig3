@@ -166,12 +166,12 @@ func handlerpost(res http.ResponseWriter, req *http.Request) {
 //----------------------------------------------------------------------------
 func handlerEx(res http.ResponseWriter, req *http.Request) {
 	ting := mux.Vars(req)
-	if !bson.IsObjectIdHex(ting["id"]) {
+	if !bson.IsObjectIdHex(ting["ID"]) {
 		res.WriteHeader(400)
 		fmt.Fprintf(res, "Internal error")
 		return
 	}
-	webshit := mongoTickets.get(ting["id"])
+	webshit := mongoTickets.get(ting["ID"])
 	res.WriteHeader(http.StatusCreated)
 	fmt.Fprint(res, webshit)
 }
