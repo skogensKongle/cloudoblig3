@@ -29,44 +29,17 @@ func main() {
 
 	router := mux.NewRouter()
 
-  //Checking Connection to mongodb
-  session, err := mgo.Dial("localhost")
-  if err != nil {
-    log.Fatal("Could not connect to the mongoDB server")
-  }
-  Init(session.DB("cloudoblig3", router)
+  http.Handle("/", router)
+  getRates(&mongoRates)
+
   fmt.Println("listening...")
   //err := http.ListenAndServe(":3000", router)
-  err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+  session, err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
   if err != nil {
     panic(err)
   }
 }
 
-
-//+++++++++++++++++++++++++ Init function +++++++++++++++++++++++++++++++
-func Init(db *mgo.Database, r *mux.Router) {
-
-database = db
-  http.Handle("/", r)
-  getRates(&mongoRates)
-	/*database = db
-	// Cron jobs
-	c := cron.New()
-	getCronData()
-	c.AddFunc("@every 24h", getCronData)
-	c.Start()
-
-	r.HandleFunc("/", handlerGet).Methods("GET")
-	r.HandleFunc("/", handlerPost).Methods("POST")
-
-	r.HandleFunc("/latest", getLatest).Methods("POST")
-	r.HandleFunc("/evaluationtrigger", evaluateTrigger).Methods("POST")
-	r.HandleFunc("/average", getAverage).Methods("POST")
-
-	r.HandleFunc("/{id}", getWebhook).Methods("GET")
-	r.HandleFunc("/{id}", deleteWebhook).Methods("DELETE")*/
-}
 
 //++++++++++++++++ fetching rates from fixer ++++++++++++++++++++++++++++
 
