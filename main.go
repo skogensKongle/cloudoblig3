@@ -37,7 +37,7 @@ func main() {
   Init(session.DB("cloudoblig3", router)
   fmt.Println("listening...")
   //err := http.ListenAndServe(":3000", router)
-  session, err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+  err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
   if err != nil {
     panic(err)
   }
@@ -48,7 +48,7 @@ func main() {
 func Init(db *mgo.Database, r *mux.Router) {
 
 database = db
-  http.Handle("/", router)
+  http.Handle("/", r)
   getRates(&mongoRates)
 	/*database = db
 	// Cron jobs
