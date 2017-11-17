@@ -1,9 +1,15 @@
 package main
 
 import (
-    "fmt"
-    "net/http"
-    "os"
+  "encoding/json"
+  "fmt"
+  "io/ioutil"
+  "net/http"
+  "os"
+
+
+    "github.com/gorilla/mux"
+  	"gopkg.in/mgo.v2"
 )
 
 // struct for saving Database
@@ -34,7 +40,7 @@ func main() {
 
   fmt.Println("listening...")
   //err := http.ListenAndServe(":3000", router)
-  session, err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+  err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
   if err != nil {
     panic(err)
   }
