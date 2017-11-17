@@ -1,15 +1,16 @@
 package main
 
 import (
-  "encoding/json"
-  "fmt"
-  "io/ioutil"
-  "net/http"
-  "os"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
 
-
-    "github.com/gorilla/mux"
-  	"gopkg.in/mgo.v2"
+	"github.com/gorilla/mux"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	cron "gopkg.in/robfig/cron.v2"
 )
 
 // struct for saving Database
@@ -18,6 +19,7 @@ type Mongo struct {
 	DatabaseName    string
 	MongoCollection string
 }
+
 //The database i use
 var mongoRates = Mongo{DatabaseURL: "mongodb://stisoe:1234@ds113136.mlab.com:13136/cloudoblig3", DatabaseName: "cloudoblig3", MongoCollection: "rates"}
 var mongoTickets = Mongo{DatabaseURL: "mongodb://stisoe:1234@ds113136.mlab.com:13136/cloudoblig3", DatabaseName: "cloudoblig3", MongoCollection: "tickets"}
@@ -31,21 +33,32 @@ type FromFixer struct {
 
 var database *mgo.Database
 
+//Webhook for incoming Post Requests
+type WebHook struct {
+	ID              bson.ObjectId `bson:"_id,omitempty"`
+	Webhookurl      string        `json:"webhookURL"`
+	Basecurrency    string        `json:"baseCurrency"`
+	Targetcurrency  string        `json:"targetCurrency"`
+	Mintriggervalue float32       `json:"minTriggerValue"`
+	Maxtriggervalue float32       `json:"maxTriggerValue"`
+}
+
 func main() {
 
 	router := mux.NewRouter()
 
-  http.Handle("/", router)
-  getRates(&mongoRates)
+	daily(&mongoRates)
 
-  fmt.Println("listening...")
-  //err := http.ListenAndServe(":3000", router)
-  err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
-  if err != nil {
-    panic(err)
-  }
+	http.Handle("/", router)
+	router.HandleFunc("/", handlerpost).Methods("POST")
+
+	fmt.Println("listening...")
+	//err := http.ListenAndServe(":3000", router)
+	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	if err != nil {
+		panic(err)
+	}
 }
-
 
 //++++++++++++++++ fetching rates from fixer ++++++++++++++++++++++++++++
 
@@ -84,6 +97,49 @@ func getRates(db *Mongo) {
 		fmt.Printf("Error in Insert(): %v", err.Error())
 	}
 
-  //testing if i get rates
-  fmt.Print(getAllRates)
+	//testing if i get rates
+	fmt.Print(getAllRates)
+}
+
+//+++++++++++++++++++++++ geting rates ons a day +++++++++++++++++++++++++++++
+
+func daily(db *Mongo) {
+	cron := cron.New()
+	cron.AddFunc("@daily", func() {
+		getRates(&mongoRates)
+		fmt.Print("Doing daylies...")
+	})
+	cron.Start()
+}
+
+//++++++++++++++++++++++  add function ++++++++++++++++++++++++++++++++++
+
+func (db *Mongo) add(new WebHook) {
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	//Handler to DB
+	err = session.DB(db.DatabaseName).C(db.MongoCollection).Insert(new)
+	if err != nil {
+		fmt.Printf("Error in Insert(): %v", err.Error())
+	}
+}
+
+//----------------------------------------------------------------------------
+func handlerpost(res http.ResponseWriter, req *http.Request) {
+
+	var webHook WebHook
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&webHook)
+	if err != nil {
+		res.WriteHeader(200)
+		return
+	}
+
+	webHook.ID = bson.NewObjectId()
+	mongoTickets.add(webHook)
+	//Returne response code
+	res.WriteHeader(http.StatusCreated)
+	fmt.Fprintln(res, webHook.ID.Hex())
 }
