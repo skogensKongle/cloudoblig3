@@ -23,6 +23,8 @@ type FromFixer struct {
 	Rates map[string]float32 `json:"rates"`
 }
 
+var database *mgo.Database
+
 func main() {
 
 	router := mux.NewRouter()
@@ -32,7 +34,7 @@ func main() {
   if err != nil {
     log.Fatal("Could not connect to the mongoDB server")
   }
-  Init(session.DB(router)
+  Init(session.DB("cloudoblig3", router)
   fmt.Println("listening...")
   //err := http.ListenAndServe(":3000", router)
   session, err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
@@ -43,8 +45,9 @@ func main() {
 
 
 //+++++++++++++++++++++++++ Init function +++++++++++++++++++++++++++++++
-func Init(r *mux.Router) {
+func Init(db *mgo.Database, r *mux.Router) {
 
+database = db
   http.Handle("/", router)
   getRates(&mongoRates)
 	/*database = db
