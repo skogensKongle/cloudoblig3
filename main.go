@@ -43,6 +43,12 @@ type WebHook struct {
 	Maxtriggervalue float32       `json:"maxTriggerValue"`
 }
 
+// LatestRates struct
+type LatestRates struct {
+	BaseCurrency   string `json:"baseCurrency"`
+	TargetCurrency string `json:"targetCurrency"`
+}
+
 func main() {
 
 	router := mux.NewRouter()
@@ -51,8 +57,11 @@ func main() {
 
 	http.Handle("/", router)
 	router.HandleFunc("/", handlerpost).Methods("POST")
+	router.HandleFunc("/average", handlerAver).Methods("POST")
 
 	router.HandleFunc("/{ID}", handlerEx).Methods("GET")
+
+	router.HandleFunc("/{ID}", handlerDel).Methods("DELETE")
 
 	fmt.Println("listening...")
 	//err := http.ListenAndServe(":3000", router)
@@ -145,6 +154,36 @@ func (db *Mongo) get(keyID string) WebHook {
 	return webhook
 }
 
+//+++++++++++++++++++++++++ delete function ++++++++++++++++++++++++++++++++
+func (db *Mongo) delete(keyID string) {
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+	id := bson.ObjectIdHex(keyID)
+
+	session.DB(db.DatabaseName).C(db.MongoCollection).RemoveId(id)
+}
+
+//+++++++++++++++++++++++++ average +++++++++++++++++++++++++++++++++++++++
+func aver(web *LatestRates) float32 {
+	session, err := mgo.Dial(mongoRates.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	var rates []FromFixer
+	err = session.DB(mongoRates.DatabaseName).C(mongoRates.MongoCollection).Find(nil).Sort("-_id").Limit(7).All(&rates)
+	if err != nil {
+		panic(err)
+	}
+	var days float32 = 0
+	for _, rate := range rates {
+		days += rate.Rates[web.TargetCurrency]
+	}
+	return (days / float32(len(rates)))
+}
+
 //----------------------------------------------------------------------------
 func handlerpost(res http.ResponseWriter, req *http.Request) {
 
@@ -174,4 +213,28 @@ func handlerEx(res http.ResponseWriter, req *http.Request) {
 	webshit := mongoTickets.get(ting["ID"])
 	res.WriteHeader(http.StatusCreated)
 	fmt.Fprint(res, webshit)
+}
+
+//---------------------------------------------------------------------------
+func handlerDel(res http.ResponseWriter, req *http.Request) {
+	ting := mux.Vars(req)
+	if !bson.IsObjectIdHex(ting["ID"]) {
+		res.WriteHeader(400)
+		fmt.Fprintf(res, "Internal error")
+		return
+	}
+	mongoTickets.delete(ting["ID"])
+	res.WriteHeader(200)
+}
+
+//---------------------------------------------------------------------------
+func handlerAver(res http.ResponseWriter, req *http.Request) {
+	var webhook LatestRates
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&webhook)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	fmt.Fprint(res, aver(&webhook))
 }
