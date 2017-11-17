@@ -52,6 +52,8 @@ func main() {
 	http.Handle("/", router)
 	router.HandleFunc("/", handlerpost).Methods("POST")
 
+	router.HandleFunc("/{ID}", handlerEx).Methods("GET")
+
 	fmt.Println("listening...")
 	//err := http.ListenAndServe(":3000", router)
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
@@ -126,6 +128,23 @@ func (db *Mongo) add(new WebHook) {
 	}
 }
 
+//+++++++++++++++++++++++++ get function ++++++++++++++++++++++++++++++++
+func (db *Mongo) get(keyID string) WebHook {
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	id := bson.ObjectIdHex(keyID)
+	webhook := WebHook{}
+	err = session.DB(db.DatabaseName).C(db.MongoCollection).FindId(id).One(&webhook)
+	if err != nil {
+		return webhook
+	}
+	return webhook
+}
+
 //----------------------------------------------------------------------------
 func handlerpost(res http.ResponseWriter, req *http.Request) {
 
@@ -142,4 +161,17 @@ func handlerpost(res http.ResponseWriter, req *http.Request) {
 	//Returne response code
 	res.WriteHeader(http.StatusCreated)
 	fmt.Fprintln(res, webHook.ID.Hex())
+}
+
+//----------------------------------------------------------------------------
+func handlerEx(res http.ResponseWriter, req *http.Request) {
+	ting := mux.Vars(req)
+	if !bson.IsObjectIdHex(ting["id"]) {
+		res.WriteHeader(400)
+		fmt.Fprintf(res, "Internal error")
+		return
+	}
+	webshit := mongoTickets.get(ting["id"])
+	res.WriteHeader(http.StatusCreated)
+	fmt.Fprint(res, webshit)
 }
