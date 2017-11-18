@@ -196,20 +196,18 @@ func aver(web *LatestRates) float32 {
 
 //++++++++++++++++++++++++++++ latest ++++++++++++++++++++++++++++++++++++++++
 
-func latest(l LatestRates) {
+func latest(l *LatestRates) Convertion {
 	session, err := mgo.Dial(mongoRates.DatabaseURL)
 	if err != nil {
 		panic(err)
 	}
 	var rates FromFixer
 	err = session.DB(mongoRates.DatabaseName).C(mongoRates.MongoCollection).Find(nil).Sort("-_id").One(&rates)
-
 	if err != nil {
 		panic(err)
-		return
 	}
 	rate := rates.As(l.BaseCurrency).To(l.TargetCurrency)
-	fmt.Print(rate)
+	return rate
 }
 
 //++++++++++++++++++++++++++++ AS ++++++++++++++++++++++++++++++++++++++++++
@@ -326,5 +324,5 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	latest(webhook)
+	fmt.Fprint(res, latest(&webhook))
 }
