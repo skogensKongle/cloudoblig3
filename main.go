@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -50,6 +49,15 @@ type LatestRates struct {
 	TargetCurrency string `json:"targetCurrency"`
 }
 
+// Convertion Holds a single from to currency value
+type Convertion struct {
+	From      string  `json:"from"`
+	FromValue float32 `json:"from_value"`
+	To        string  `json:"to"`
+	ToValue   float32 `json:"to_value"`
+	Rate      float32 `json:"rate"`
+}
+
 func main() {
 
 	router := mux.NewRouter()
@@ -59,6 +67,7 @@ func main() {
 	http.Handle("/", router)
 	router.HandleFunc("/", handlerpost).Methods("POST")
 	router.HandleFunc("/average", handlerAver).Methods("POST")
+	router.HandleFunc("/latest", handlerlate).Methods("POST")
 
 	router.HandleFunc("/{ID}", handlerEx).Methods("GET")
 
@@ -136,9 +145,6 @@ func (db *Mongo) add(new WebHook) {
 	if err != nil {
 		fmt.Printf("Error in Insert(): %v", err.Error())
 	}
-	url := "https://discordapp.com/api/webhooks/378503095576952842/1tmdzZmVLBHN8DRyGOBHk1N4NTzHR9QaXjzC6eacFYGR7ATsTpeKe4WwQx9S8ZUz6jCK"
-	jsonValue, _ := json.Marshal(new)
-	http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
 }
 
 //+++++++++++++++++++++++++ get function ++++++++++++++++++++++++++++++++
@@ -186,6 +192,72 @@ func aver(web *LatestRates) float32 {
 		days += rate.Rates[web.TargetCurrency]
 	}
 	return (days / float32(len(rates)))
+}
+
+//++++++++++++++++++++++++++++ latest ++++++++++++++++++++++++++++++++++++++++
+
+func latest(l LatestRates) {
+	session, err := mgo.Dial(mongoRates.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	var rates FromFixer
+	err = session.DB(mongoRates.DatabaseName).C(mongoRates.MongoCollection).Find(nil).Sort("-_id").One(&rates)
+
+	if err != nil {
+		panic(err)
+		return
+	}
+	rate := rates.As(l.BaseCurrency).To(l.TargetCurrency)
+	fmt.Print(rate)
+}
+
+//++++++++++++++++++++++++++++ AS ++++++++++++++++++++++++++++++++++++++++++
+
+// As changes the base currency
+func (data FromFixer) As(name string) FromFixer {
+	if data.Base == name {
+		return data
+	}
+	var baseCurrency float32
+	if data.Base == "EUR" {
+		baseCurrency = 1.0
+	} else {
+		baseCurrency = data.Rates[data.Base]
+	}
+	data.Rates[data.Base] = 1 * GetRates(data.Rates[name], baseCurrency)
+
+	data.Base = name
+	baseValue := data.Rates[name]
+	for key, value := range data.Rates {
+		data.Rates[key] = 1 * GetRates(baseValue, value)
+	}
+	delete(data.Rates, name)
+
+	return data
+}
+
+//++++++++++++++++++++++++++ getRates +++++++++++++++++++++++++++++++++++++
+
+// GetRates returns the currency rates
+func GetRates(from float32, to float32) float32 {
+	if from == to {
+		return 1.0
+	}
+	return to * (1 / from)
+}
+
+//+++++++++++++++++++++++++ TO ++++++++++++++++++++++++++++++++++++++++++++
+
+// To returns the value from a currency to another
+func (data FromFixer) To(name string) Convertion {
+	return Convertion{
+		From:      data.Base,
+		FromValue: 1.0,
+		To:        name,
+		ToValue:   data.Rates[name],
+		Rate:      data.Rates[name],
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -245,3 +317,14 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 }
 
 //---------------------------------------------------------------------------
+
+func handlerlate(res http.ResponseWriter, req *http.Request) {
+	var webhook LatestRates
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&webhook)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	latest(webhook)
+}
