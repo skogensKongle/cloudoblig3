@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -135,6 +136,9 @@ func (db *Mongo) add(new WebHook) {
 	if err != nil {
 		fmt.Printf("Error in Insert(): %v", err.Error())
 	}
+	url := "https://bots.dialogflow.com/slack/9ef71f70-657a-4881-a27e-42ae9303d8b6/webhook"
+	jsonValue, _ := json.Marshal(new)
+	http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
 }
 
 //+++++++++++++++++++++++++ get function ++++++++++++++++++++++++++++++++
@@ -200,6 +204,7 @@ func handlerpost(res http.ResponseWriter, req *http.Request) {
 	//Returne response code
 	res.WriteHeader(http.StatusCreated)
 	fmt.Fprintln(res, webHook.ID.Hex())
+
 }
 
 //----------------------------------------------------------------------------
@@ -238,3 +243,5 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Fprint(res, aver(&webhook))
 }
+
+//---------------------------------------------------------------------------
