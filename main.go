@@ -136,7 +136,7 @@ func (db *Mongo) add(new WebHook) {
 	if err != nil {
 		fmt.Printf("Error in Insert(): %v", err.Error())
 	}
-	url := "https://bots.dialogflow.com/slack/9ef71f70-657a-4881-a27e-42ae9303d8b6/webhook"
+	url := "https://discordapp.com/api/webhooks/378503095576952842/1tmdzZmVLBHN8DRyGOBHk1N4NTzHR9QaXjzC6eacFYGR7ATsTpeKe4WwQx9S8ZUz6jCK"
 	jsonValue, _ := json.Marshal(new)
 	http.Post(url, "application/json", bytes.NewBuffer(jsonValue))
 }
