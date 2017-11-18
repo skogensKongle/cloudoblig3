@@ -58,6 +58,17 @@ type Convertion struct {
 	Rate      float32 `json:"rate"`
 }
 
+// struct to get json from dialogFlow
+
+type FromDialog struct {
+	Result struct {
+		Parameters struct {
+			BaseCurrency   string `json:"baseCurrency"`
+			TargetCurrency string `json:"targetCurrency"`
+		} `json:"parameters"`
+	} `json:"result"`
+}
+
 func main() {
 
 	router := mux.NewRouter()
@@ -318,11 +329,14 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 
 func handlerlate(res http.ResponseWriter, req *http.Request) {
 	var webhook LatestRates
+	var js FromDialog
 	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&webhook)
+	err := decoder.Decode(&js)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	webhook.BaseCurrency = js.Result.Parameters.BaseCurrency
+	webhook.TargetCurrency = js.Result.Parameters.TargetCurrency
 	fmt.Fprint(res, latest(&webhook))
 }
