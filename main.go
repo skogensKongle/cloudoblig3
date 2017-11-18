@@ -338,5 +338,9 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	}
 	webhook.BaseCurrency = js.Result.Parameters.BaseCurrency
 	webhook.TargetCurrency = js.Result.Parameters.TargetCurrency
+	//just for testing purposes
+	fmt.Print(js.Result.Parameters.BaseCurrency)
+	fmt.Print(js.Result.Parameters.TargetCurrency)
+	//----- -----   ----   ----- ----   ----
 	fmt.Fprint(res, latest(&webhook))
 }
