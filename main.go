@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
@@ -67,6 +68,13 @@ type FromDialog struct {
 			TargetCurrency string `json:"targetCurrency"`
 		} `json:"parameters"`
 	} `json:"result"`
+}
+
+//
+
+type CurrencyRes struct {
+	DisplayText string `json:"displayText"`
+	Speech      string `json:"speech"`
 }
 
 func main() {
@@ -330,6 +338,8 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 func handlerlate(res http.ResponseWriter, req *http.Request) {
 	var webhook LatestRates
 	var js FromDialog
+	var l Convertion
+	var send CurrencyRes
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&js)
 	if err != nil {
@@ -345,5 +355,15 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	//fmt.Fprint(res, js.Result.Parameters.BaseCurrency)
 	//fmt.Fprint(res, js.Result.Parameters.TargetCurrency)
 	//----- -----   ----   ----- ----   ----
-	fmt.Fprint(res, latest(&webhook))
+	//fmt.Fprint(res, latest(&webhook))
+	l = latest(&webhook)
+	var str string
+	str = strconv.FormatFloat(float64(l.Rate), 'f', -1, 32)
+	send.DisplayText = str
+	send.Speech = str
+	http.Header.Add(res.Header(), "content-type", "application/json")
+	err = json.NewEncoder(res).Encode(send)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+	}
 }
