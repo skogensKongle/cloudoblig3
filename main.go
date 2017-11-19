@@ -341,7 +341,7 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	//just for testing purposes
 	fmt.Fprint(res, "test")
 	fmt.Fprint(res, webhook)
-	fmt.Fprint(res, js)
+	fmt.Fprint(res, &js)
 	//fmt.Fprint(res, js.Result.Parameters.BaseCurrency)
 	//fmt.Fprint(res, js.Result.Parameters.TargetCurrency)
 	//----- -----   ----   ----- ----   ----
