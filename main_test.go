@@ -153,9 +153,9 @@ func Testaverage_aver(t *testing.T) {
 	var test LatestRates
 	test.BaseCurrency = "EUR"
 	test.TargetCurrency = "NOK"
-	nr := aver(&test, db.DatabaseURL)
-	fmt.Print(aver(&test, db.DatabaseURL))
-	if nr != 1 {
+	//nr := aver(&test, db.DatabaseURL)
+	fmt.Print(aver(&test, &db))
+	if aver(&test, &db) != 1 {
 		t.Error("Did not finde average")
 	}
 }

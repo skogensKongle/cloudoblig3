@@ -196,13 +196,13 @@ func (db *Mongo) delete(keyID string) {
 }
 
 //+++++++++++++++++++++++++ average +++++++++++++++++++++++++++++++++++++++
-func aver(web *LatestRates, db string) float32 {
-	session, err := mgo.Dial(db)
+func aver(web *LatestRates, db *Mongo) float32 {
+	session, err := mgo.Dial(db.DatabaseURL)
 	if err != nil {
 		panic(err)
 	}
 	var rates []FromFixer
-	err = session.DB(mongoRates.DatabaseName).C(mongoRates.MongoCollection).Find(nil).Sort("-_id").Limit(7).All(&rates)
+	err = session.DB(db.DatabaseName).C(db.MongoCollection).Find(nil).Sort("-_id").Limit(7).All(&rates)
 	if err != nil {
 		panic(err)
 	}
@@ -330,7 +330,7 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	fmt.Fprint(res, aver(&webhook, mongoRates.DatabaseURL))
+	fmt.Fprint(res, aver(&webhook, &mongoRates))
 }
 
 //---------------------------------------------------------------------------
