@@ -331,7 +331,7 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	var webhook LatestRates
 	var js FromDialog
 	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(js)
+	err := decoder.Decode(&js)
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		return
@@ -341,7 +341,7 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	//just for testing purposes
 	fmt.Fprint(res, "test")
 	fmt.Fprint(res, webhook)
-	fmt.Fprint(res, js)
+	fmt.Fprint(res, &js)
 	//fmt.Fprint(res, js.Result.Parameters.BaseCurrency)
 	//fmt.Fprint(res, js.Result.Parameters.TargetCurrency)
 	//----- -----   ----   ----- ----   ----
