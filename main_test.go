@@ -153,8 +153,39 @@ func Testaverage_aver(t *testing.T) {
 	var test LatestRates
 	test.BaseCurrency = "EUR"
 	test.TargetCurrency = "NOK"
-
-	if aver(&test) != 1 {
+	nr := aver(&test, db.DatabaseURL)
+	fmt.Print(aver(&test, db.DatabaseURL))
+	if nr != 1 {
 		t.Error("Did not finde average")
+	}
+}
+
+func TestLatest_latest(t *testing.T) {
+	db := Mongo{DatabaseURL: "mongodb://localhost", DatabaseName: "testing", MongoCollection: "test"}
+	session, err := mgo.Dial(db.DatabaseURL)
+	defer session.Close()
+	if err != nil {
+		t.Error(err)
+	}
+	defer tearDownDB(t, &db)
+
+	if db.Count() != 0 {
+		t.Error("database not properly initialized, data count() should be 0.", db.Count())
+	}
+
+	data := FromFixer{Base: "EUR", Date: "2017-11-10", Rates: map[string]float32{"NOK": 1}}
+	err = session.DB(db.DatabaseName).C(db.MongoCollection).Insert(data)
+	if err != nil {
+		t.Error(err)
+	}
+
+	var late LatestRates
+	var new Convertion
+	late.BaseCurrency = "EUR"
+	late.TargetCurrency = "NOK"
+	new = latest(&late)
+	//fmt.Print(new.Rate)
+	if new.Rate != 9.7163 {
+		t.Error("latest rate not properly given")
 	}
 }

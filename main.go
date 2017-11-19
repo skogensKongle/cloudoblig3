@@ -196,8 +196,8 @@ func (db *Mongo) delete(keyID string) {
 }
 
 //+++++++++++++++++++++++++ average +++++++++++++++++++++++++++++++++++++++
-func aver(web *LatestRates) float32 {
-	session, err := mgo.Dial(mongoRates.DatabaseURL)
+func aver(web *LatestRates, db string) float32 {
+	session, err := mgo.Dial(db)
 	if err != nil {
 		panic(err)
 	}
@@ -330,7 +330,7 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	fmt.Fprint(res, aver(&webhook))
+	fmt.Fprint(res, aver(&webhook, mongoRates.DatabaseURL))
 }
 
 //---------------------------------------------------------------------------
@@ -348,14 +348,7 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	}
 	webhook.BaseCurrency = js.Result.Parameters.BaseCurrency
 	webhook.TargetCurrency = js.Result.Parameters.TargetCurrency
-	//just for testing purposes
-	//fmt.Fprint(res, "test")
-	//fmt.Fprint(res, webhook)
-	//fmt.Fprint(res, &js)
-	//fmt.Fprint(res, js.Result.Parameters.BaseCurrency)
-	//fmt.Fprint(res, js.Result.Parameters.TargetCurrency)
-	//----- -----   ----   ----- ----   ----
-	//fmt.Fprint(res, latest(&webhook))
+
 	l = latest(&webhook)
 	var str string
 	str = strconv.FormatFloat(float64(l.Rate), 'f', -1, 32)
