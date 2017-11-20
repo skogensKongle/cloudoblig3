@@ -221,3 +221,34 @@ func TestAs_As(t *testing.T) {
 		t.Error("Don't show right base, ", new.Base)
 	}
 }
+
+func TestDay_daily(t *testing.T) {
+	db := Mongo{DatabaseURL: "mongodb://localhost", DatabaseName: "testing", MongoCollection: "test"}
+	session, err := mgo.Dial(db.DatabaseURL)
+	defer session.Close()
+	if err != nil {
+		t.Error(err)
+	}
+	defer tearDownDB(t, &db)
+
+	if db.Count() != 0 {
+		t.Error("database not properly initialized, data count() should be 0.", db.Count())
+	}
+
+	daily(&db)
+}
+
+func TestGet_getRates(t *testing.T) {
+	db := Mongo{DatabaseURL: "mongodb://localhost", DatabaseName: "testing", MongoCollection: "test"}
+	session, err := mgo.Dial(db.DatabaseURL)
+	defer session.Close()
+	if err != nil {
+		t.Error(err)
+	}
+	defer tearDownDB(t, &db)
+
+	if db.Count() != 0 {
+		t.Error("database not properly initialized, data count() should be 0.", db.Count())
+	}
+	getRates(&db)
+}
