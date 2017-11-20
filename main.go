@@ -215,7 +215,12 @@ func aver(web *LatestRates, db *Mongo) float32 {
 
 //++++++++++++++++++++++++++++ latest ++++++++++++++++++++++++++++++++++++++++
 
-func latest(l *LatestRates) Convertion {
+func latest(js *FromDialog) CurrencyRes {
+	var l LatestRates
+	l.BaseCurrency = js.Result.Parameters.BaseCurrency
+	l.TargetCurrency = js.Result.Parameters.TargetCurrency
+
+	//---------------------------------------------------------------------------
 	session, err := mgo.Dial(mongoRates.DatabaseURL)
 	if err != nil {
 		panic(err)
@@ -226,7 +231,25 @@ func latest(l *LatestRates) Convertion {
 		panic(err)
 	}
 	rate := rates.As(l.BaseCurrency).To(l.TargetCurrency)
-	return rate
+	//---------------------------------------------------------------------------
+	str := strconv.FormatFloat(float64(rate.Rate), 'f', -1, 32)
+	var send CurrencyRes
+	send.DisplayText = str
+	send.Speech = str
+	/*
+		var l Convertion
+		var send CurrencyRes
+		var webhook
+
+		webhook.BaseCurrency = js.Result.Parameters.BaseCurrency
+		webhook.TargetCurrency = js.Result.Parameters.TargetCurrency
+
+		l = latest(&webhook)
+		var str string
+		str = strconv.FormatFloat(float64(l.Rate), 'f', -1, 32)
+		send.DisplayText = str
+		send.Speech = str*/
+	return send
 }
 
 //++++++++++++++++++++++++++++ AS ++++++++++++++++++++++++++++++++++++++++++
@@ -336,7 +359,21 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 //---------------------------------------------------------------------------
 
 func handlerlate(res http.ResponseWriter, req *http.Request) {
-	var webhook LatestRates
+	var js FromDialog
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(&js)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	send := latest(&js)
+	http.Header.Add(res.Header(), "content-type", "application/json")
+	err = json.NewEncoder(res).Encode(send)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+	}
+	/*var webhook LatestRates
 	var js FromDialog
 	var l Convertion
 	var send CurrencyRes
@@ -358,5 +395,5 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	err = json.NewEncoder(res).Encode(send)
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusBadRequest)
-	}
+	}*/
 }

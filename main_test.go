@@ -179,13 +179,12 @@ func TestLatest_latest(t *testing.T) {
 		t.Error(err)
 	}
 
-	var late LatestRates
-	var new Convertion
-	late.BaseCurrency = "EUR"
-	late.TargetCurrency = "NOK"
+	var late FromDialog
+	var new CurrencyRes
+	late.Result.Parameters.BaseCurrency = "EUR"
+	late.Result.Parameters.TargetCurrency = "NOK"
 	new = latest(&late)
-	//fmt.Print(new.Rate)
-	if new.Rate != 9.7163 {
+	if new.DisplayText != "9.7163" {
 		t.Error("latest rate not properly given")
 	}
 }
