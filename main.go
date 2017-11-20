@@ -175,9 +175,9 @@ func daily(db *Mongo) {
 	cron := cron.New()
 	cron.AddFunc("@daily", func() {
 		getRates(&mongoRates)
-		fmt.Print("Doing daylies...")
 	})
 	cron.Start()
+	fmt.Print("Doing daylies... ")
 }
 
 //++++++++++++++++++++++  add function ++++++++++++++++++++++++++++++++++
@@ -192,6 +192,7 @@ func (db *Mongo) add(new WebHook) {
 	if err != nil {
 		fmt.Printf("Error in Insert(): %v", err.Error())
 	}
+	fmt.Print("things has been added, ")
 }
 
 //+++++++++++++++++++++++++ get function ++++++++++++++++++++++++++++++++
@@ -206,8 +207,9 @@ func (db *Mongo) get(keyID string) WebHook {
 	webhook := WebHook{}
 	err = session.DB(db.DatabaseName).C(db.MongoCollection).FindId(id).One(&webhook)
 	if err != nil {
-		return webhook
+		panic(err)
 	}
+	fmt.Print("Returning webhook, ")
 	return webhook
 }
 
@@ -238,6 +240,10 @@ func aver(web *LatestRates, db *Mongo) float32 {
 	for _, rate := range rates {
 		days += rate.Rates[web.TargetCurrency]
 	}
+	//geting control on the average nr
+	fmt.Print(" Average: ")
+	fmt.Print(days / float32(len(rates)))
+	fmt.Print(". ")
 	return (days / float32(len(rates)))
 }
 
@@ -258,12 +264,18 @@ func latest(js *FromDialog) CurrencyRes {
 	if err != nil {
 		panic(err)
 	}
-	rate := rates.As(l.BaseCurrency).To(l.TargetCurrency)
+	var rate Convertion
+	rate = rates.As(l.BaseCurrency).To(l.TargetCurrency)
 	//---------------------------------------------------------------------------
-	str := strconv.FormatFloat(float64(rate.Rate), 'f', -1, 32)
+	var str string
+	str = strconv.FormatFloat(float64(rate.Rate), 'f', -1, 32)
 	var send CurrencyRes
 	send.DisplayText = str
 	send.Speech = str
+	//Geting control over whats beeing sendt
+	fmt.Print(" Displaying whats beeing sendt: ")
+	fmt.Print(send.DisplayText)
+	fmt.Print(" sending end. ")
 	return send
 }
 
@@ -283,7 +295,8 @@ func (data FromFixer) As(name string) FromFixer {
 	data.Rates[data.Base] = 1 * GetRates(data.Rates[name], baseCurrency)
 
 	data.Base = name
-	baseValue := data.Rates[name]
+	var baseValue float32
+	baseValue = data.Rates[name]
 	for key, value := range data.Rates {
 		data.Rates[key] = 1 * GetRates(baseValue, value)
 	}
@@ -327,9 +340,6 @@ func handlerpost(res http.ResponseWriter, req *http.Request) {
 
 	webHook.ID = bson.NewObjectId()
 	mongoTickets.add(webHook)
-	//Returne response code
-	res.WriteHeader(http.StatusCreated)
-	fmt.Fprintln(res, webHook.ID.Hex())
 
 }
 
@@ -351,7 +361,6 @@ func handlerDel(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(400)
 	}
 	mongoTickets.delete(ting["ID"])
-	res.WriteHeader(200)
 }
 
 //---------------------------------------------------------------------------
@@ -361,7 +370,6 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 	err := decoder.Decode(&webhook)
 	if err != nil {
 		res.WriteHeader(400)
-		return
 	}
 	fmt.Fprint(res, aver(&webhook, &mongoRates))
 }
