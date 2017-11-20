@@ -295,7 +295,6 @@ func handlerpost(res http.ResponseWriter, req *http.Request) {
 	err := decoder.Decode(&webHook)
 	if err != nil {
 		res.WriteHeader(200)
-		return
 	}
 
 	webHook.ID = bson.NewObjectId()
@@ -311,8 +310,6 @@ func handlerEx(res http.ResponseWriter, req *http.Request) {
 	ting := mux.Vars(req)
 	if !bson.IsObjectIdHex(ting["ID"]) {
 		res.WriteHeader(400)
-		fmt.Fprintf(res, "Internal error")
-		return
 	}
 	webshit := mongoTickets.get(ting["ID"])
 	res.WriteHeader(http.StatusCreated)
@@ -324,8 +321,6 @@ func handlerDel(res http.ResponseWriter, req *http.Request) {
 	ting := mux.Vars(req)
 	if !bson.IsObjectIdHex(ting["ID"]) {
 		res.WriteHeader(400)
-		fmt.Fprintf(res, "Internal error")
-		return
 	}
 	mongoTickets.delete(ting["ID"])
 	res.WriteHeader(200)
@@ -337,7 +332,7 @@ func handlerAver(res http.ResponseWriter, req *http.Request) {
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&webhook)
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
+		res.WriteHeader(400)
 		return
 	}
 	fmt.Fprint(res, aver(&webhook, &mongoRates))
@@ -350,7 +345,7 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&js)
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
+		res.WriteHeader(400)
 		return
 	}
 
@@ -358,6 +353,6 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	http.Header.Add(res.Header(), "content-type", "application/json")
 	err = json.NewEncoder(res).Encode(send)
 	if err != nil {
-		http.Error(res, err.Error(), http.StatusBadRequest)
+		http.Error(res, err.Error(), 400)
 	}
 }
