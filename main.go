@@ -124,7 +124,6 @@ func (db *Mongo) Count() int {
 	count, err := session.DB(db.DatabaseName).C(db.MongoCollection).Count()
 	if err != nil {
 		fmt.Printf("error in Count(): %v", err.Error())
-		return -1
 	}
 	return count
 }
