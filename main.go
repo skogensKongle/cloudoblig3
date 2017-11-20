@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"testing"
 
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
@@ -97,6 +98,35 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+//++++++++++++++++++++++++++++ Used in testing +++++++++++++++++++++++++++++
+func tearDownDB(t *testing.T, db *Mongo) {
+	session, err := mgo.Dial(db.DatabaseURL)
+	defer session.Close()
+	if err != nil {
+		t.Error(err)
+	}
+
+	err = session.DB(db.DatabaseName).DropDatabase()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func (db *Mongo) Count() int {
+	session, err := mgo.Dial(db.DatabaseURL)
+	if err != nil {
+		panic(err)
+	}
+	defer session.Close()
+
+	count, err := session.DB(db.DatabaseName).C(db.MongoCollection).Count()
+	if err != nil {
+		fmt.Printf("error in Count(): %v", err.Error())
+		return -1
+	}
+	return count
 }
 
 //++++++++++++++++ fetching rates from fixer ++++++++++++++++++++++++++++
