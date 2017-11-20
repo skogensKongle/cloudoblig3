@@ -93,7 +93,6 @@ func main() {
 	router.HandleFunc("/{ID}", handlerDel).Methods("DELETE")
 
 	fmt.Println("listening...")
-	//err := http.ListenAndServe(":3000", router)
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	if err != nil {
 		panic(err)
