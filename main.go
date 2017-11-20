@@ -236,19 +236,6 @@ func latest(js *FromDialog) CurrencyRes {
 	var send CurrencyRes
 	send.DisplayText = str
 	send.Speech = str
-	/*
-		var l Convertion
-		var send CurrencyRes
-		var webhook
-
-		webhook.BaseCurrency = js.Result.Parameters.BaseCurrency
-		webhook.TargetCurrency = js.Result.Parameters.TargetCurrency
-
-		l = latest(&webhook)
-		var str string
-		str = strconv.FormatFloat(float64(l.Rate), 'f', -1, 32)
-		send.DisplayText = str
-		send.Speech = str*/
 	return send
 }
 
@@ -373,27 +360,4 @@ func handlerlate(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 	}
-	/*var webhook LatestRates
-	var js FromDialog
-	var l Convertion
-	var send CurrencyRes
-	decoder := json.NewDecoder(req.Body)
-	err := decoder.Decode(&js)
-	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	webhook.BaseCurrency = js.Result.Parameters.BaseCurrency
-	webhook.TargetCurrency = js.Result.Parameters.TargetCurrency
-
-	l = latest(&webhook)
-	var str string
-	str = strconv.FormatFloat(float64(l.Rate), 'f', -1, 32)
-	send.DisplayText = str
-	send.Speech = str
-	http.Header.Add(res.Header(), "content-type", "application/json")
-	err = json.NewEncoder(res).Encode(send)
-	if err != nil {
-		http.Error(res, err.Error(), http.StatusBadRequest)
-	}*/
 }
