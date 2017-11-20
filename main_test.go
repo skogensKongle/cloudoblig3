@@ -122,7 +122,7 @@ func TestDel_delete(t *testing.T) {
 	}
 }
 
-func Testaverage_aver(t *testing.T) {
+func TestAverage_aver(t *testing.T) {
 	db := Mongo{DatabaseURL: "mongodb://localhost", DatabaseName: "testing", MongoCollection: "test"}
 	session, err := mgo.Dial(db.DatabaseURL)
 	defer session.Close()
@@ -187,5 +187,37 @@ func TestLatest_latest(t *testing.T) {
 	//fmt.Print(new.Rate)
 	if new.Rate != 9.7163 {
 		t.Error("latest rate not properly given")
+	}
+}
+
+func TestGetRates_getRates(t *testing.T) {
+	var float1 float32
+	var float2 float32
+
+	float1 = 2
+	float2 = 3
+
+	nr := GetRates(float1, float2)
+	if nr != 1.5 {
+		t.Error("getRates don't work as it should ", nr)
+	}
+	float1 = 1
+	float2 = 1
+	nr2 := GetRates(float1, float2)
+	if nr2 != 1 {
+		t.Error("supposed to return 1, but returns", nr2)
+	}
+}
+
+func TestAs_As(t *testing.T) {
+	data := FromFixer{Base: "EUR", Date: "2017-11-10", Rates: map[string]float32{"NOK": 1}}
+	new := data.As("NOK")
+	if new.Base != "NOK" && new.Date != data.Date {
+		t.Error("Don't show right base, ", new.Base)
+	}
+	data2 := FromFixer{Base: "NOK", Date: "2017-11-10", Rates: map[string]float32{"EUR": 1}}
+	new2 := data2.As("EUR")
+	if new2.Base != "EUR" && new2.Date != data2.Date {
+		t.Error("Don't show right base, ", new.Base)
 	}
 }
