@@ -166,6 +166,7 @@ func getRates(db *Mongo) {
 	}
 
 	//testing if i get rates
+	fmt.Print(" Newest rates: ")
 	fmt.Print(getAllRates)
 }
 
@@ -192,7 +193,7 @@ func (db *Mongo) add(new WebHook) {
 	if err != nil {
 		fmt.Printf("Error in Insert(): %v", err.Error())
 	}
-	fmt.Print("things has been added, ")
+	fmt.Print(" Webhook has been added, ")
 }
 
 //+++++++++++++++++++++++++ get function ++++++++++++++++++++++++++++++++
@@ -221,8 +222,9 @@ func (db *Mongo) delete(keyID string) {
 	}
 	defer session.Close()
 	id := bson.ObjectIdHex(keyID)
-
+	fmt.Print(" Removing... ")
 	session.DB(db.DatabaseName).C(db.MongoCollection).RemoveId(id)
+	fmt.Print("..Deleted! ")
 }
 
 //+++++++++++++++++++++++++ average +++++++++++++++++++++++++++++++++++++++
@@ -273,9 +275,6 @@ func latest(js *FromDialog) CurrencyRes {
 	send.DisplayText = str
 	send.Speech = str
 	//Geting control over whats beeing sendt
-	fmt.Print(" Displaying whats beeing sendt: ")
-	fmt.Print(send.DisplayText)
-	fmt.Print(" sending end. ")
 	return send
 }
 
