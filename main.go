@@ -266,11 +266,11 @@ func latest(js *FromDialog) CurrencyRes {
 	if err != nil {
 		panic(err)
 	}
-	var rate Convertion
-	rate = rates.As(l.BaseCurrency).To(l.TargetCurrency)
+	//var rate Convertion
+	rate := rates.As(l.BaseCurrency).To(l.TargetCurrency)
 	//---------------------------------------------------------------------------
-	var str string
-	str = strconv.FormatFloat(float64(rate.Rate), 'f', -1, 32)
+	//var str string
+	str := strconv.FormatFloat(float64(rate.Rate), 'f', -1, 32)
 	var send CurrencyRes
 	send.DisplayText = str
 	send.Speech = str
