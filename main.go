@@ -85,7 +85,7 @@ func main() {
 	daily(&mongoRates)
 
 	http.Handle("/latest", router)
-	router.HandleFunc("/new", handlerpost).Methods("POST")
+	router.HandleFunc("/", handlerpost).Methods("POST")
 	router.HandleFunc("/average", handlerAver).Methods("POST")
 	router.HandleFunc("/latest", handlerlate).Methods("POST")
 
