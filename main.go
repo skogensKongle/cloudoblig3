@@ -166,7 +166,7 @@ func getRates(db *Mongo) {
 	}
 
 	//testing if i get rates
-	fmt.Print(" Newest rates: ")
+	//fmt.Print(" Newest rates: ")
 	fmt.Print(getAllRates)
 }
 
@@ -178,7 +178,7 @@ func daily(db *Mongo) {
 		getRates(&mongoRates)
 	})
 	cron.Start()
-	fmt.Print("Doing daylies... ")
+	//fmt.Print("Doing daylies... ")
 }
 
 //++++++++++++++++++++++  add function ++++++++++++++++++++++++++++++++++
@@ -193,7 +193,7 @@ func (db *Mongo) add(new WebHook) {
 	if err != nil {
 		fmt.Printf("Error in Insert(): %v", err.Error())
 	}
-	fmt.Print(" Webhook has been added, ")
+	//fmt.Print(" Webhook has been added, ")
 }
 
 //+++++++++++++++++++++++++ get function ++++++++++++++++++++++++++++++++
@@ -210,7 +210,7 @@ func (db *Mongo) get(keyID string) WebHook {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Print("Returning webhook, ")
+	//fmt.Print("Returning webhook, ")
 	return webhook
 }
 
@@ -222,9 +222,9 @@ func (db *Mongo) delete(keyID string) {
 	}
 	defer session.Close()
 	id := bson.ObjectIdHex(keyID)
-	fmt.Print(" Removing... ")
+	//fmt.Print(" Removing... ")
 	session.DB(db.DatabaseName).C(db.MongoCollection).RemoveId(id)
-	fmt.Print("..Deleted! ")
+	//fmt.Print("..Deleted! ")
 }
 
 //+++++++++++++++++++++++++ average +++++++++++++++++++++++++++++++++++++++
@@ -243,9 +243,9 @@ func aver(web *LatestRates, db *Mongo) float32 {
 		days += rate.Rates[web.TargetCurrency]
 	}
 	//geting control on the average nr
-	fmt.Print(" Average: ")
-	fmt.Print(days / float32(len(rates)))
-	fmt.Print(". ")
+	//fmt.Print(" Average: ")
+	//fmt.Print(days / float32(len(rates)))
+	//fmt.Print(". ")
 	return (days / float32(len(rates)))
 }
 
